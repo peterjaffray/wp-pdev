@@ -1,0 +1,32 @@
+# WordPress files
+plugins/*
+!plugins/.gitkeep
+themes/*
+!themes/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Database backups
+*.sql
+*.sql.gz
+
+# Logs
+debug.log
+*.log
+
+# Environment
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker volumes (if locally stored)
+db_data/
+wordpress_data/
