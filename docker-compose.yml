@@ -38,15 +38,15 @@ services:
         define('WP_DEBUG_DISPLAY', false);
         define('SCRIPT_DEBUG', true);
         define('WP_ENVIRONMENT_TYPE', 'local');
+        define('FS_METHOD', 'direct');
         @ini_set('display_errors', 0);
     ports:
       - "${WORDPRESS_PORT}:80"
     volumes:
       - wordpress_data:/var/www/html
-      - ./plugins:/var/www/html/wp-content/plugins
-      - ./themes:/var/www/html/wp-content/themes
-      - ./uploads:/var/www/html/wp-content/uploads
-      - ./debug.log:/var/www/html/wp-content/debug.log
+      - ./wp-content:/var/www/html/wp-content
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - /home/r11/dev/choice-uft:/var/www/html/wp-content/plugins/choice-uft
     networks:
       - wp-network
 
@@ -57,7 +57,7 @@ services:
       - wordpress
     image: wordpress:cli
     container_name: wp-pdev-cli
-    user: xfs
+    user: "33:33"
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: ${MYSQL_USER}
@@ -65,9 +65,8 @@ services:
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
     volumes:
       - wordpress_data:/var/www/html
-      - ./plugins:/var/www/html/wp-content/plugins
-      - ./themes:/var/www/html/wp-content/themes
-      - ./uploads:/var/www/html/wp-content/uploads
+      - ./wp-content:/var/www/html/wp-content
+      - /home/r11/dev/choice-uft:/var/www/html/wp-content/plugins/choice-uft
     networks:
       - wp-network
     entrypoint: ["tail", "-f", "/dev/null"]
