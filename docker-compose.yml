@@ -46,7 +46,6 @@ services:
       - wordpress_data:/var/www/html
       - ./wp-content:/var/www/html/wp-content
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
-      - /home/r11/dev/choice-uft:/var/www/html/wp-content/plugins/choice-uft
     networks:
       - wp-network
 
@@ -66,7 +65,6 @@ services:
     volumes:
       - wordpress_data:/var/www/html
       - ./wp-content:/var/www/html/wp-content
-      - /home/r11/dev/choice-uft:/var/www/html/wp-content/plugins/choice-uft
     networks:
       - wp-network
     entrypoint: ["tail", "-f", "/dev/null"]

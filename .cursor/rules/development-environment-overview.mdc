@@ -1,0 +1,79 @@
+---
+
+description: WordPress Docker Development Environment Context
+globs: ["**/*.php", "**/*.js", "**/docker-compose.yml", "wp-content/**"]
+alwaysApply: true
+
+---
+
+# Development Environment Context
+
+## Quick Access Information
+
+- **WordPress**: http://localhost:8080
+- **Admin Panel**: http://localhost:8080/wp-admin
+- **MailCatcher**: http://localhost:1080
+- **Database**: localhost:3306
+
+## Docker Containers
+
+- `wp-pdev-wordpress` - Main WordPress/Apache/PHP container
+- `wp-pdev-db` - MySQL 8.0 database
+- `wp-pdev-cli` - WP-CLI for command-line operations
+- `wp-pdev-mailcatcher` - Email capture (all emails route here)
+
+## Key Paths
+
+- **WordPress Root (container)**: `/var/www/html/`
+- **Project Root (host)**: `/home/r11/dev/wp-pdev/`
+- **Plugin Under Test**: `/home/r11/dev/choice-uft/` → symlinked to `wp-content/plugins/choice-uft`
+
+## Common Commands
+
+Execute WP-CLI: `docker exec wp-pdev-cli wp [command]`
+View logs: `docker exec wp-pdev-wordpress tail -f /var/www/html/wp-content/debug.log`
+Restart services: `docker-compose restart [service]`
+
+## Installed Form Frameworks
+
+- Contact Form 7 (v6.1.1)
+- Gravity Forms (v2.9.17.1)
+- Ninja Forms (v3.12.1)
+- Elementor Pro (v3.32.2)
+- Avada/Fusion Forms (v3.13.2)
+
+## Development Notes
+
+- PHP upload limit: 256MB
+- Memory limit: 512MB
+- All emails go to MailCatcher - check http://localhost:1080
+- Debug mode enabled - check wp-content/debug.log
+- Changes to `/home/r11/dev/choice-uft/` immediately reflect in WordPress
+
+## Choice-UFT Plugin
+
+- Tracks form submissions across all frameworks
+- Pushes events to `window.dataLayer` for GTM
+- Debug messages prefixed with `[CUFT]` in console
+- Configure GTM ID: Settings → Choice UFT
+
+## Testing Forms
+
+1. Open Tag Assistant or GTM Preview
+2. Submit form on site
+3. Check browser console for `[CUFT]` messages
+4. Verify events in `window.dataLayer`
+5. Check MailCatcher for email delivery
+
+## Current Issues
+
+- Test forms work but real framework forms failing
+- Plugin has fatal error in admin (WP_Upgrader_Skin class)
+- Need to verify framework implementations match plugin assumptions
+
+## Related Project Files
+
+@docker-compose.yml
+@.env
+@/home/r11/dev/choice-uft/choice-universal-form-tracker.php
+@/home/r11/dev/choice-uft/includes/class-cuft-form-detector.php

@@ -1,0 +1,164 @@
+---
+description: Form Framework Testing Procedures and Tracking
+globs: ["**/cuft-*.js", "**/class-cuft-*.php", "**/forms/**", "**/test/**"]
+alwaysApply: false
+---
+
+# Form Framework Testing Guide
+
+## Test Form Locations
+
+### Contact Form 7
+- Admin: Plugins → Contact Form 7 → Add New
+- Shortcode: `[contact-form-7 id="ID" title="Title"]`
+- AJAX Events: `wpcf7mailsent`, `wpcf7submit`, `wpcf7invalid`
+- DOM Success: `.wpcf7-response-output.wpcf7-mail-sent-ok`
+
+### Gravity Forms
+- Admin: Forms → New Form
+- Shortcode: `[gravityform id="ID" ajax="true"]`
+- JS Events: `gform_confirmation_loaded`, `gform_post_render`
+- Success Indicator: `.gform_confirmation_message`
+
+### Ninja Forms
+- Admin: Ninja Forms → Add New
+- Shortcode: `[ninja_form id="ID"]`
+- Backbone Events: `nfRadio.channel('forms').trigger('submit:response')`
+- Success: `.nf-response-msg`
+
+### Elementor Forms
+- Edit with Elementor → Add Widget → Form
+- Widget ID: `elementor-form-widget-[HASH]`
+- jQuery Events: `submit_success`, `form_destruct`
+- Success: `.elementor-message-success`
+
+### Avada/Fusion Forms
+- Fusion Builder → Add Element → Form
+- Form Class: `.fusion-form`
+- AJAX Success: `.fusion-form-response-success`
+- Events: Custom Fusion events
+
+## Testing Workflow
+
+### 1. Create Test Form
+```bash
+# CF7 Example
+docker exec wp-pdev-cli wp cf7 form add "Test CF7 Form"
+
+# Gravity Forms Example
+docker exec wp-pdev-cli wp gf form create "Test GF Form"
+
+# Ninja Forms Example
+docker exec wp-pdev-cli wp ninja-forms create-form --title="Test NF Form"
+```
+
+### 2. Required Fields for Choice-UFT Tracking
+- Email field (type: email)
+- Phone field (type: tel)
+- Name field (type: text)
+- Message field (type: textarea)
+
+### 3. Verify Tracking
+
+#### Browser Console Checks
+```javascript
+// Check if Choice-UFT is loaded
+console.log(window.cuftUtmUtils);
+
+// Monitor dataLayer
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push = function() {
+    console.log('[DataLayer Push]', arguments);
+    return Array.prototype.push.apply(this, arguments);
+};
+
+// Enable CUFT debugging
+localStorage.setItem('cuft_debug', 'true');
+```
+
+#### Expected dataLayer Events
+```javascript
+{
+    event: 'form_submit',
+    formType: '[framework_name]',
+    formId: '[form_id]',
+    formName: '[form_name]',
+    user_email: '[email]',
+    user_phone: '[phone]',
+    utm_source: '[source]',
+    utm_campaign: '[campaign]',
+    cuft_tracked: true
+}
+```
+
+### 4. Common Issues & Solutions
+
+#### Form Not Tracking
+- Check if framework is detected: `CUFT_Form_Detector::is_framework_detected('[framework]')`
+- Verify JS file loaded: Network tab → `cuft-[framework]-forms.js`
+- Check for JS errors in console
+
+#### Success State Not Detected
+- Inspect DOM after submission
+- Look for success classes/elements
+- Check AJAX response in Network tab
+
+#### Email/Phone Not Captured
+- Verify field types are correct
+- Check field names/IDs
+- Ensure validation passes
+
+## Test Scenarios
+
+### Basic Submission Test
+1. Fill all fields with valid data
+2. Submit form
+3. Check console for `[CUFT]` messages
+4. Verify dataLayer push
+5. Check MailCatcher for email
+
+### UTM Parameter Test
+1. Add UTM params to URL: `?utm_source=test&utm_campaign=test_campaign`
+2. Submit form
+3. Verify UTM data in dataLayer event
+
+### Generate Lead Test
+1. Ensure email + phone + click_id present
+2. Submit form
+3. Look for `generate_lead` event
+4. Verify all required fields
+
+### AJAX vs Standard Submission
+1. Test with AJAX enabled (if supported)
+2. Test with AJAX disabled
+3. Compare tracking behavior
+
+## Debug Commands
+
+```bash
+# Check plugin status
+docker exec wp-pdev-cli wp plugin list | grep choice-uft
+
+# View recent form submissions in log
+docker exec wp-pdev-wordpress grep "form_submit" /var/www/html/wp-content/debug.log | tail -20
+
+# Check for PHP errors
+docker exec wp-pdev-wordpress tail -f /var/www/html/wp-content/debug.log | grep -i error
+
+# Monitor real-time submissions
+docker exec wp-pdev-wordpress tail -f /var/www/html/wp-content/debug.log | grep CUFT
+```
+
+## Validation Checklist
+
+- [ ] Form submits successfully
+- [ ] Email arrives in MailCatcher
+- [ ] `form_submit` event in dataLayer
+- [ ] UTM parameters captured
+- [ ] Phone/email fields extracted
+- [ ] No console errors
+- [ ] Success message displays
+- [ ] `generate_lead` fires (when applicable)
+
+@/home/r11/dev/choice-uft/includes/class-cuft-test-forms.php
+@/home/r11/dev/choice-uft/assets/cuft-test-forms.js

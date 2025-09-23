@@ -1,0 +1,352 @@
+---
+description: Docker Operations and Container Management
+globs: ["**/docker-compose.yml", "**/Dockerfile", "**/.dockerignore"]
+alwaysApply: false
+---
+
+# Docker Commands Reference
+
+## Container Management
+
+### Start/Stop Services
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# Restart specific service
+docker-compose restart wordpress
+docker-compose restart db
+docker-compose restart mailcatcher
+
+# View running containers
+docker-compose ps
+
+# View container logs
+docker-compose logs -f wordpress
+docker-compose logs --tail=50 db
+```
+
+### Container Access
+```bash
+# Access WordPress container shell
+docker exec -it wp-pdev-wordpress bash
+
+# Access MySQL container
+docker exec -it wp-pdev-db mysql -uwordpress -pwordpress wordpress
+
+# Access WP-CLI container
+docker exec -it wp-pdev-cli bash
+```
+
+## WP-CLI Operations
+
+### User Management
+```bash
+# Create admin user
+docker exec wp-pdev-cli wp user create testadmin admin@example.com --role=administrator --user_pass=password
+
+# List users
+docker exec wp-pdev-cli wp user list
+
+# Reset password
+docker exec wp-pdev-cli wp user update 1 --user_pass=newpassword
+```
+
+### Plugin Management
+```bash
+# List plugins
+docker exec wp-pdev-cli wp plugin list
+
+# Activate/Deactivate
+docker exec wp-pdev-cli wp plugin activate choice-uft
+docker exec wp-pdev-cli wp plugin deactivate choice-uft
+
+# Install plugin
+docker exec wp-pdev-cli wp plugin install plugin-slug --activate
+
+# Update plugins
+docker exec wp-pdev-cli wp plugin update --all
+```
+
+### Database Operations
+```bash
+# Export database
+docker exec wp-pdev-cli wp db export - > backup.sql
+
+# Import database
+docker exec wp-pdev-cli wp db import < backup.sql
+
+# Search and replace
+docker exec wp-pdev-cli wp search-replace 'old-domain.com' 'localhost:8080'
+
+# Optimize database
+docker exec wp-pdev-cli wp db optimize
+
+# Reset database
+docker exec wp-pdev-cli wp db reset --yes
+```
+
+### Cache Management
+```bash
+# Clear object cache
+docker exec wp-pdev-cli wp cache flush
+
+# Clear transients
+docker exec wp-pdev-cli wp transient delete --all
+
+# Clear rewrite rules
+docker exec wp-pdev-cli wp rewrite flush
+```
+
+## File Operations
+
+### Copy Files To/From Container
+```bash
+# Copy file to container
+docker cp local-file.php wp-pdev-wordpress:/var/www/html/
+
+# Copy file from container
+docker cp wp-pdev-wordpress:/var/www/html/wp-config.php ./wp-config-backup.php
+
+# Copy entire directory
+docker cp ./my-plugin wp-pdev-wordpress:/var/www/html/wp-content/plugins/
+```
+
+### File Permissions
+```bash
+# Fix WordPress permissions
+docker exec wp-pdev-wordpress chown -R www-data:www-data /var/www/html/wp-content
+docker exec wp-pdev-wordpress find /var/www/html/wp-content -type d -exec chmod 755 {} \;
+docker exec wp-pdev-wordpress find /var/www/html/wp-content -type f -exec chmod 644 {} \;
+
+# Make uploads writable
+docker exec wp-pdev-wordpress chmod -R 777 /var/www/html/wp-content/uploads
+```
+
+## Debugging
+
+### View Logs
+```bash
+# Apache error log
+docker exec wp-pdev-wordpress tail -f /var/log/apache2/error.log
+
+# Apache access log
+docker exec wp-pdev-wordpress tail -f /var/log/apache2/access.log
+
+# WordPress debug log
+docker exec wp-pdev-wordpress tail -f /var/www/html/wp-content/debug.log
+
+# MySQL slow query log
+docker exec wp-pdev-db tail -f /var/log/mysql/slow.log
+```
+
+### Monitor Resources
+```bash
+# Container stats
+docker stats wp-pdev-wordpress wp-pdev-db
+
+# Container processes
+docker exec wp-pdev-wordpress ps aux
+
+# Disk usage
+docker exec wp-pdev-wordpress df -h
+docker exec wp-pdev-wordpress du -sh /var/www/html/*
+
+# Memory usage
+docker exec wp-pdev-wordpress free -m
+```
+
+### Network Debugging
+```bash
+# Test connectivity between containers
+docker exec wp-pdev-wordpress ping -c 3 db
+docker exec wp-pdev-wordpress ping -c 3 mailcatcher
+
+# Check listening ports
+docker exec wp-pdev-wordpress netstat -tuln
+
+# Test database connection
+docker exec wp-pdev-wordpress mysql -hdb -uwordpress -pwordpress -e "SELECT 1"
+
+# Test mail server
+docker exec wp-pdev-wordpress telnet mailcatcher 1025
+```
+
+## Development Workflows
+
+### Quick Reset Environment
+```bash
+# Full reset (careful - deletes everything!)
+docker-compose down -v
+docker-compose up -d
+docker exec wp-pdev-cli wp core install \
+  --url=http://localhost:8080 \
+  --title="Dev Site" \
+  --admin_user=admin \
+  --admin_email=admin@example.com \
+  --admin_password=password
+```
+
+### Sync with Production
+```bash
+# Export production database
+ssh production "wp db export - | gzip" > prod-db.sql.gz
+
+# Import to local
+gunzip -c prod-db.sql.gz | docker exec -i wp-pdev-cli wp db import -
+
+# Update URLs
+docker exec wp-pdev-cli wp search-replace 'https://production.com' 'http://localhost:8080'
+
+# Sync uploads
+rsync -avz production:/path/to/uploads/ ./wp-content/uploads/
+```
+
+### Create Test Content
+```bash
+# Generate test posts
+docker exec wp-pdev-cli wp post generate --count=10 --post_type=post
+
+# Generate test pages
+docker exec wp-pdev-cli wp post generate --count=5 --post_type=page
+
+# Create test users
+for i in {1..5}; do
+  docker exec wp-pdev-cli wp user create user$i user$i@example.com --role=subscriber
+done
+```
+
+## Maintenance
+
+### Clean Up
+```bash
+# Remove unused images
+docker image prune -a
+
+# Remove unused volumes
+docker volume prune
+
+# Remove stopped containers
+docker container prune
+
+# Full system cleanup
+docker system prune -a --volumes
+
+# Check disk usage
+docker system df
+```
+
+### Backup & Restore
+```bash
+# Full backup
+mkdir backup-$(date +%Y%m%d)
+docker exec wp-pdev-cli wp db export - > backup-$(date +%Y%m%d)/database.sql
+tar -czf backup-$(date +%Y%m%d)/wp-content.tar.gz ./wp-content
+cp docker-compose.yml backup-$(date +%Y%m%d)/
+cp .env backup-$(date +%Y%m%d)/
+
+# Restore from backup
+docker exec wp-pdev-cli wp db import < backup-20240101/database.sql
+tar -xzf backup-20240101/wp-content.tar.gz
+```
+
+### Update Containers
+```bash
+# Pull latest images
+docker-compose pull
+
+# Recreate containers with new images
+docker-compose up -d --force-recreate
+
+# Build custom image (if using Dockerfile)
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+## Troubleshooting
+
+### Container Won't Start
+```bash
+# Check logs
+docker-compose logs wordpress
+
+# Check container status
+docker ps -a
+
+# Inspect container
+docker inspect wp-pdev-wordpress
+
+# Force recreate
+docker-compose down
+docker-compose up -d --force-recreate
+```
+
+### Permission Issues
+```bash
+# Reset ownership
+docker exec wp-pdev-wordpress chown -R www-data:www-data /var/www/html
+
+# Check current permissions
+docker exec wp-pdev-wordpress ls -la /var/www/html/wp-content/
+```
+
+### Database Connection Issues
+```bash
+# Test connection
+docker exec wp-pdev-wordpress mysql -hdb -uroot -proot -e "SHOW DATABASES"
+
+# Check environment variables
+docker exec wp-pdev-wordpress printenv | grep MYSQL
+
+# Recreate database container
+docker-compose down db
+docker-compose up -d db
+```
+
+## Custom Scripts
+
+### Health Check Script
+```bash
+#!/bin/bash
+echo "Checking WordPress health..."
+curl -f http://localhost:8080/wp-admin/install.php > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo "✅ WordPress is running"
+else
+  echo "❌ WordPress is not responding"
+fi
+
+echo "Checking database..."
+docker exec wp-pdev-cli wp db check > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo "✅ Database is healthy"
+else
+  echo "❌ Database issues detected"
+fi
+
+echo "Checking MailCatcher..."
+curl -f http://localhost:1080 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo "✅ MailCatcher is running"
+else
+  echo "❌ MailCatcher is not responding"
+fi
+```
+
+### Quick Deploy Script
+```bash
+#!/bin/bash
+# Deploy changes to container
+echo "Deploying changes..."
+docker cp ./wp-content/plugins/choice-uft wp-pdev-wordpress:/var/www/html/wp-content/plugins/
+docker exec wp-pdev-wordpress chown -R www-data:www-data /var/www/html/wp-content/plugins/choice-uft
+docker exec wp-pdev-cli wp plugin deactivate choice-uft
+docker exec wp-pdev-cli wp plugin activate choice-uft
+echo "✅ Deployment complete"
+```
+
+@docker-compose.yml
+@.env

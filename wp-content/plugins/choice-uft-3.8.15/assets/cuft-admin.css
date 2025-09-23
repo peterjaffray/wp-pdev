@@ -1,0 +1,14 @@
+/* Choice Universal Form Tracker Admin Styles */
+
+/* Use standard WordPress notice styling - no custom positioning */
+.cuft-admin-notice {
+  /* Let WordPress handle the notice positioning */
+}
+
+.cuft-admin-notice p {
+  margin: 0.5em 0;
+}
+
+.cuft-admin-notice p:last-child {
+  margin-bottom: 0;
+}
