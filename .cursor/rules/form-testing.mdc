@@ -160,5 +160,5 @@ docker exec wp-pdev-wordpress tail -f /var/www/html/wp-content/debug.log | grep 
 - [ ] Success message displays
 - [ ] `generate_lead` fires (when applicable)
 
-@/home/r11/dev/choice-uft/includes/class-cuft-test-forms.php
-@/home/r11/dev/choice-uft/assets/cuft-test-forms.js
+@/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-test-forms.php
+@/home/r11/dev/wp/plugins/choice-uft/assets/cuft-test-forms.js

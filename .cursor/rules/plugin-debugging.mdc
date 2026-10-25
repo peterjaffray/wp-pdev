@@ -9,10 +9,10 @@ alwaysApply: false
 ## Plugin Architecture
 
 ### Core Files
-- **Main Plugin**: `/home/r11/dev/choice-uft/choice-universal-form-tracker.php`
-- **Admin Interface**: `/home/r11/dev/choice-uft/includes/class-cuft-admin.php`
-- **Form Detector**: `/home/r11/dev/choice-uft/includes/class-cuft-form-detector.php`
-- **Logger**: `/home/r11/dev/choice-uft/includes/class-cuft-logger.php`
+- **Main Plugin**: `/home/r11/dev/wp/plugins/choice-uft/choice-universal-form-tracker.php`
+- **Admin Interface**: `/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-admin.php`
+- **Form Detector**: `/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-form-detector.php`
+- **Logger**: `/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-logger.php`
 
 ### Framework Integrations
 ```
@@ -274,6 +274,6 @@ if (performance.memory) {
 }
 ```
 
-@/home/r11/dev/choice-uft/includes/class-cuft-logger.php
-@/home/r11/dev/choice-uft/includes/class-cuft-form-detector.php
-@/home/r11/dev/choice-uft/choice-universal-form-tracker.php
+@/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-logger.php
+@/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-form-detector.php
+@/home/r11/dev/wp/plugins/choice-uft/choice-universal-form-tracker.php

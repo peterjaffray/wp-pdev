@@ -26,7 +26,7 @@ alwaysApply: true
 
 - **WordPress Root (container)**: `/var/www/html/`
 - **Project Root (host)**: `/home/r11/dev/wp-pdev/`
-- **Plugin Under Test**: `/home/r11/dev/choice-uft/` → symlinked to `wp-content/plugins/choice-uft`
+- **Plugin Under Test**: `/home/r11/dev/wp/plugins/choice-uft/` → symlinked to `wp-content/plugins/choice-uft`
 
 ## Common Commands
 
@@ -48,7 +48,7 @@ Restart services: `docker-compose restart [service]`
 - Memory limit: 512MB
 - All emails go to MailCatcher - check http://localhost:1080
 - Debug mode enabled - check wp-content/debug.log
-- Changes to `/home/r11/dev/choice-uft/` immediately reflect in WordPress
+- Changes to `/home/r11/dev/wp/plugins/choice-uft/` immediately reflect in WordPress
 
 ## Choice-UFT Plugin
 
@@ -75,5 +75,5 @@ Restart services: `docker-compose restart [service]`
 
 @docker-compose.yml
 @.env
-@/home/r11/dev/choice-uft/choice-universal-form-tracker.php
-@/home/r11/dev/choice-uft/includes/class-cuft-form-detector.php
+@/home/r11/dev/wp/plugins/choice-uft/choice-universal-form-tracker.php
+@/home/r11/dev/wp/plugins/choice-uft/includes/class-cuft-form-detector.php
